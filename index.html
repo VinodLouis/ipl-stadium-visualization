@@ -6,24 +6,19 @@
 <link rel="stylesheet" href="css/jquery-ui-timepicker-addon/jquery-ui-timepicker-addon.min.css"></link>
 <script type="text/javascript" src="scripts/vendor/d3/d3.v3.min.js"></script>
 <style type="text/css">
-.link { stroke: #ccc; }
-.nodetext { pointer-events: none; font: 10px sans-serif;fill:#ffffff;}
-#arrow {
-  stroke-fill: #e5e5e5;
-  fill: #e5e5e5;
-  stroke-width: 2px;
-}
-.graph-svg-component{background-color: #000000;}
+.link { stroke: #666666; }
+.nodetext { pointer-events: none; font: 10px sans-serif;}
 </style>
 </head>
 <body>
-<div id="chart"></div>
+
 <div>
 <!--<input type="button" value="zoom down" onclick="zoomDown(false)">-->
 <input type="button" value="zoom reset" onclick="zoomDown(true)">
 &nbsp;<input type="text" id="rangeDateTimeStart" placeholder="Start DateTime">
 &nbsp;<input type="text" id="rangeDateTimeEnd" placeholder="End DateTime">
 </div>
+<div id="chart"></div>
 </body>
 <script type="text/javascript" src="scripts/vendor/jquery/jquery-3.1.1.min.js"></script>
 <script type="text/javascript" src="scripts/vendor/jquery-ui/jquery-ui.min.js"></script>

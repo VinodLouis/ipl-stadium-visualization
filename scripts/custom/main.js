@@ -4,6 +4,17 @@ console.log(w,h);
 var min_zoom = 1;
 var max_zoom = 5;
 var zoom = min_zoom;
+var colorYear = {
+    "2008" : "#c3cb71",
+    "2009" : "#559e83",
+    "2010" : "#1b85b8",
+    "2011" : "#9669FE",
+    "2012" : "#FF68DD",
+    "2013" : "#03EBA6",
+    "2014" : "#B6BA18",
+    "2015" : "#B6BA18",
+    "2016" :  "#FFB347"
+};
 
 var svg = d3.select("#chart").append("svg:svg")
     .attr("width", w)
@@ -32,26 +43,10 @@ function zoomDown(isReset) {
 }
 
 function drawGraph(json) {
-    //either can use target node weight ot edge weight for time complexity taking the one which has less data
-    var minArrayForRange = (json.nodes.length < json.links.length) ? json.nodes : json.links;
-
-    //get all value of weight in single array
-    var arrValues = minArrayForRange.map(function(d) {
-        return d.value;
-    });
-
-    //set the scale for circle radius
-    var linearScaleForCircleRadius = d3.scale.linear()
-        .domain([Math.min(...arrValues), Math.max(...arrValues)])
-        .range([5, 20]);
-
-    //set the scale for stroke width    
-    var linearScaleForLineSrtoke = d3.scale.linear()
-        .domain([Math.min(...arrValues), Math.max(...arrValues)])
-        .range([1, 10]);
+   
 
     //start the force    
-    var force = self.force = d3.layout.force()
+    var force = d3.layout.force()
         .nodes(json.nodes)
         .links(json.links)
         .gravity(.05)
@@ -60,20 +55,7 @@ function drawGraph(json) {
         .size([w, h])
         .start();
 
-    //append marker    
-    svg.insert('defs', ':first-child')
-        .append('marker')
-        .attr('id', 'arrow')
-        .attr('markerUnits', 'userSpaceOnUse')
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 15)
-        .attr("refY", -1.5)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("svg:path")
-        .attr("d", "M0,-5L10,0L0,5");
-
+   
 
     //append edge with mrkers    
     var link = vis.selectAll("line.link")
@@ -92,10 +74,7 @@ function drawGraph(json) {
         .attr("y2", function(d) {
             return d.target.y;
         })
-        .attr("stroke-width", function(d) {
-            return linearScaleForLineSrtoke(d.value);
-        })
-        .attr("marker-end", "url(#arrow)");
+        //.attr("marker-end", "url(#arrow)");
 
     //bind drag event for node drag and stay    
     var node_drag = d3.behavior.drag()
@@ -104,6 +83,7 @@ function drawGraph(json) {
         .on("dragend", dragend);
 
     function dragstart(d, i) {
+        d3.event.sourceEvent.stopPropagation();
         force.stop() // stops the force auto positioning before you start dragging
     }
 
@@ -131,12 +111,16 @@ function drawGraph(json) {
     //append circle to node OR can be an image    
     node.append("svg:circle")
         .attr("r", function(d) {
-            return linearScaleForCircleRadius(d.value)
+            return ((d.type == "stadium") ? 20 : 10)
         })
         .attr("x", "-8px")
         .attr("y", "-8px")
         .style("fill", function(d) {
-            return ((d.type == "p") ? "#A27AFE" : "#CDD11B") //nodecolor(d.group);
+            return ((d.type == "stadium") ? "#2DC800" : colorYear[d.dataElem.year]) //nodecolor(d.group);
+        })
+        .on("click",function(e){
+             if (d3.event.defaultPrevented) return;
+             console.log("clicked");
         })
         .on("dblclick.zoom", callZoom)
 
@@ -158,7 +142,11 @@ function drawGraph(json) {
         .attr("dx", 12)
         .attr("dy", ".35em")
         .text(function(d) {
-            return d.name
+            if(d.type == "stadium")
+                return d.dataElem.shortName;
+            
+            return d.dataElem.team1.team.abbreviation + " Vs " + d.dataElem.team2.team.abbreviation;  
+            
         });
 
     force.on("tick", tick);
@@ -189,10 +177,10 @@ function drawGraph(json) {
                 return d.source.y;
             })
             .attr("x2", function(d) {
-                return calculatePoint(d)[0];
+                return d.target.x; //calculatePoint(d)[0];
             })
             .attr("y2", function(d) {
-                return calculatePoint(d)[1];
+                return d.target.y; //calculatePoint(d)[1];
             })
 
         node.attr("transform", function(d) {
@@ -202,83 +190,53 @@ function drawGraph(json) {
 }
 
 
-function processData(data, centric) {
-    var patientList = [];
-    var usersList = [];
+function processData(data) {
+    var stadiumList = [];
     var graph = {
         "nodes": [],
         "links": []
     };
-    var unknownPatient = 0;
-    var unknownUser = 0;
-    var byCriteria = centric;
+    
     data.forEach(function(ele) {
-        //safe check to ensure there is no empty data
-        var intPatiendId = (ele.EPIC_PATIENT_ID && !isNaN(ele.EPIC_PATIENT_ID)) ? parseInt(ele.EPIC_PATIENT_ID, 10) : ("unknownPatient" + (unknownPatient));
-        var intUserId = (ele.USER_ID && !isNaN(ele.USER_ID)) ? parseInt(ele.USER_ID, 10) : ("unknownUser" + (unknownUser));
         
+        if(!ele.venue)
+            return;
         //if patient not found add new node
-        if (patientList.indexOf(intPatiendId) == -1) {
+        if (stadiumList.indexOf(ele.venue.id) == -1) {
             graph.nodes.push({
-                "name": intPatiendId,
                 "index": graph.nodes.length,
-                "dataElem": ele,
-                group: graph.nodes.length,
-                type: "p",
-                value: 30
+                "stadiumId": ele.venue.id,
+                "dataElem" : ele.venue,
+                "matchId":"NA",
+                "group": graph.nodes.length,
+                "type": "stadium"
             });
-            patientList.push(intPatiendId);
+            stadiumList.push(ele.venue.id);
         }
 
-        //if user not found add new node
-        if (usersList.indexOf(intUserId) == -1) {
-            graph.nodes.push({
-                "name": intUserId,
-                "index": graph.nodes.length,
-                "dataElem": ele,
-                group: graph.nodes.length,
-                type: "u",
-                value: 30
-            });
-            usersList.push(intUserId);
-        }
-
-        //check if an link already exists between patient-user
-        var exisLink = graph.links.find(function(ele) {
-            if (byCriteria == "p")
-                return (ele.soureElement == intUserId && ele.targetElement == intPatiendId);
-            return (ele.soureElement == intPatiendId && ele.targetElement == intUserId);
+        graph.nodes.push({
+            "index": graph.nodes.length,
+            "dataElem": ele,
+            "stadiumId": "NA",
+            "matchId":ele.year +"_"+ele.id,
+            "group": graph.nodes.length,
+            "type": "match"
         });
 
-        //if exists
-        if (exisLink) {
-            //increase the edge weight and also target node weight
-            exisLink.value += 5;
-            var target = graph.nodes.find(function(ele) {
-                if (byCriteria == "p")
-                    return (ele.name == intPatiendId)
-                return (ele.name == intUserId)
-            });
-            target.value += 5;
-        } else {
-            //else push a new edge from sourve to target
-            var source = graph.nodes.find(function(ele) {
-                return (ele.name == intUserId)
-            });
 
-            var target = graph.nodes.find(function(ele) {
-                return (ele.name == intPatiendId)
+        var source = graph.nodes.find(function(el) {
+            return (el.stadiumId == ele.venue.id)
+        });
+
+            var target = graph.nodes.find(function(el) {
+                return (el.matchId == ele.year +"_"+ele.id)
             });
             graph.links.push({
-                source: (byCriteria == "p") ? source.index : target.index,
-                target: (byCriteria == "p") ? target.index : source.index,
-                value: 30,
-                soureElement: (byCriteria == "p") ? source.name : target.name,
-                targetElement: (byCriteria == "p") ? target.name : source.name,
+                source: source.index,
+                target: target.index,
                 type: "arrow"
             })
-        }
-    });
+    });        
     return graph;
 }
 
@@ -286,6 +244,13 @@ d3.csv("data/eee1-extract_10_clean.csv", function(data) {
     //get the csv data pass and get node graph processed data 
     //TODO : "u"/"p" to be decided on basic of userID/patiendID
     var graph = processData(data, "u");
+    //drawGraph(graph);
+});
+
+d3.json("data/matches.json", function(data) {
+    
+    var graph = processData(data, "u");
+    console.log(graph);
     drawGraph(graph);
 });
 
