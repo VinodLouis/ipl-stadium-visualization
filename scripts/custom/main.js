@@ -49,7 +49,7 @@ function drawGraph(json) {
     var force = d3.layout.force()
         .nodes(json.nodes)
         .links(json.links)
-        .gravity(.05)
+        .gravity(.04)
         .distance(70)
         .charge(-20)
         .size([w, h])
@@ -115,6 +115,7 @@ function drawGraph(json) {
         })
         .attr("x", "-8px")
         .attr("y", "-8px")
+        .attr("class","node-s-m")
         .style("fill", function(d) {
             return ((d.type == "stadium") ? "#2DC800" : colorYear[d.dataElem.year]) //nodecolor(d.group);
         })
@@ -123,7 +124,25 @@ function drawGraph(json) {
              console.log("clicked");
         })
         .on("dblclick.zoom", callZoom)
+        .each(function(d){
+            $(this).tipsy({  
+        html: true, 
+        title: function() {
+           var d = this.__data__;
+           var strHTML = "<table>";
+           if(d.type == "stadium"){
+              strHTML += "<tr><td>" + d.dataElem.fullName + "</td></tr>";
+              strHTML += "<tr><td>" + d.dataElem.city + " - " + d.dataElem.country + "</td></tr>";
+              strHTML += "</table>";
+              return strHTML;    
+           }
 
+           strHTML += '<tr><td colspan="2">' + 
+        }
+      });        
+        })
+
+        
     /*    
     node.append("svg:image")
     
@@ -148,6 +167,9 @@ function drawGraph(json) {
             return d.dataElem.team1.team.abbreviation + " Vs " + d.dataElem.team2.team.abbreviation;  
             
         });
+
+
+        
 
     force.on("tick", tick);
 
@@ -240,13 +262,8 @@ function processData(data) {
     return graph;
 }
 
-d3.csv("data/eee1-extract_10_clean.csv", function(data) {
-    //get the csv data pass and get node graph processed data 
-    //TODO : "u"/"p" to be decided on basic of userID/patiendID
-    var graph = processData(data, "u");
-    //drawGraph(graph);
-});
 
+$(document).ready(function() {
 d3.json("data/matches.json", function(data) {
     
     var graph = processData(data, "u");
@@ -254,19 +271,6 @@ d3.json("data/matches.json", function(data) {
     drawGraph(graph);
 });
 
-$(document).ready(function() {
-    var startDateTextBox = $('#rangeDateTimeStart');
-    var endDateTextBox = $('#rangeDateTimeEnd');
+
     
-    $.timepicker.datetimeRange(
-      startDateTextBox,
-      endDateTextBox,
-      {
-        minInterval: (1000*60*60), // 1hr
-        dateFormat: 'dd M yy', 
-        timeFormat: 'HH:mm:ss',
-        start: {}, // start picker options
-        end: {} // end picker options         
-      }
-    );
 });
