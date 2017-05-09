@@ -1,3 +1,4 @@
+var glb_data;
 var w = 1200,
     h = 600
 console.log(w,h);
@@ -21,7 +22,7 @@ var svg = d3.select("#chart").append("svg:svg")
     .attr("height", h)
     .attr("class", "graph-svg-component");
 
-var vis = svg.append("g")
+var vis = svg.append("g").attr("id","chartP")
 
 function callZoom(d) {
     d3.event.stopPropagation();
@@ -43,9 +44,9 @@ function zoomDown(isReset) {
 }
 
 function drawGraph(json) {
-   
 
-    //start the force    
+    $("#chartP").html("");
+    //start the force
     var force = d3.layout.force()
         .nodes(json.nodes)
         .links(json.links)
@@ -55,9 +56,9 @@ function drawGraph(json) {
         .size([w, h])
         .start();
 
-   
 
-    //append edge with mrkers    
+
+    //append edge with mrkers
     var link = vis.selectAll("line.link")
         .data(json.links)
         .enter().append("svg:line")
@@ -76,7 +77,7 @@ function drawGraph(json) {
         })
         //.attr("marker-end", "url(#arrow)");
 
-    //bind drag event for node drag and stay    
+    //bind drag event for node drag and stay
     var node_drag = d3.behavior.drag()
         .on("dragstart", dragstart)
         .on("drag", dragmove)
@@ -108,7 +109,7 @@ function drawGraph(json) {
         .attr("class", "node")
         .call(node_drag);
 
-    //append circle to node OR can be an image    
+    //append circle to node OR can be an image
     node.append("svg:circle")
         .attr("r", function(d) {
             return ((d.type == "stadium") ? 20 : 10)
@@ -121,31 +122,38 @@ function drawGraph(json) {
         })
         .on("click",function(e){
              if (d3.event.defaultPrevented) return;
-             console.log("clicked");
+             var d = this.__data__;
+             if (d.type == "stadium") return;
+             renderTableData(d);
         })
         .on("dblclick.zoom", callZoom)
         .each(function(d){
-            $(this).tipsy({  
-        html: true, 
+            $(this).tipsy({
+        html: true,
         title: function() {
            var d = this.__data__;
-           var strHTML = "<table>";
+           var strHTML = "<table class='tool-tip-custom' cellspacing='2' cellpadding='3' border='1'>";
            if(d.type == "stadium"){
               strHTML += "<tr><td>" + d.dataElem.fullName + "</td></tr>";
               strHTML += "<tr><td>" + d.dataElem.city + " - " + d.dataElem.country + "</td></tr>";
               strHTML += "</table>";
-              return strHTML;    
+              return strHTML;
            }
-
-           strHTML += '<tr><td colspan="2">' + 
+           var dt = new Date(d.dataElem.matchDate);
+           var team = (d.dataElem.team1.innings[0].inningsNumber == 1) ? [d.dataElem.team1,d.dataElem.team2] : [d.dataElem.team2,d.dataElem.team1];
+           strHTML += '<tr><td colspan="2">' + dt.toDateString() + " , " + dt.toLocaleString().split(",")[1] + '</td></tr>';
+           strHTML += "<tr><td><div>" + team[0].team.fullName + "</div><div>" + team[0].innings[0].runs + "/" + team[0].innings[0].wkts + " in " + ((((team[0].innings[0].ballsFaced / 6)%1) == 0) ? (team[0].innings[0].ballsFaced / 6) : Math.floor(team[0].innings[0].ballsFaced / 6) + "." + (team[0].innings[0].ballsFaced % 6)) + " overs </div></td>";
+           strHTML += "<td><div>" + team[1].team.fullName + "</div><div>" + team[1].innings[0].runs + "/" + team[1].innings[0].wkts + " in " + ((((team[1].innings[0].ballsFaced / 6)%1) == 0) ? (team[1].innings[0].ballsFaced / 6) : Math.floor(team[1].innings[0].ballsFaced / 6) + "." + (team[1].innings[0].ballsFaced % 6)) + " overs </div></td></tr>";
+           strHTML += '<tr><td colspan="2">' + d.dataElem.matchStatus.text + '</td></tr></table><div class="small-font">* Click for more details</div>';
+           return strHTML;
         }
-      });        
+      });
         })
 
-        
-    /*    
+
+    /*
     node.append("svg:image")
-    
+
         .attr("xlink:href", function(d) {
                 return ((d.type == "p") ? "img/patient.png" : "img/user.png") //nodecolor(d.group);
             })
@@ -163,15 +171,28 @@ function drawGraph(json) {
         .text(function(d) {
             if(d.type == "stadium")
                 return d.dataElem.shortName;
-            
-            return d.dataElem.team1.team.abbreviation + " Vs " + d.dataElem.team2.team.abbreviation;  
-            
+
+            return d.dataElem.team1.team.abbreviation + " Vs " + d.dataElem.team2.team.abbreviation;
+
         });
 
 
-        
+
 
     force.on("tick", tick);
+
+
+    function renderTableData(data){
+       var dt = new Date(data.dataElem.matchDate);
+      var strHTML = '<table cellspacing="2" cellpadding="3">';
+       var team = (data.dataElem.team1.innings[0].inningsNumber == 1) ? [data.dataElem.team1,data.dataElem.team2] : [data.dataElem.team2,data.dataElem.team1];
+      strHTML += '<tr><td>' + data.dataElem.description + 'of Season ' + data.year + '</td><td>' +  dt.toDateString() + " , " + dt.toLocaleString().split(",")[1] + '</td></tr>';
+      strHTML += '<tr><td><div><span class="team-logo ' +  team[0].team.abbreviation + '"></span>' + team[0].team.fullName + "</div><div>" + team[0].innings[0].runs + "/" + team[0].innings[0].wkts + " in " + ((((team[0].innings[0].ballsFaced / 6)%1) == 0) ? (team[0].innings[0].ballsFaced / 6) : Math.floor(team[0].innings[0].ballsFaced / 6) + "." + (team[0].innings[0].ballsFaced % 6)) + " overs </div></td>";
+      strHTML += '<tr><td><div><span class="team-logo ' +  team[1].team.abbreviation + '"></span>' + team[1].team.fullName + "</div><div>" + team[1].innings[0].runs + "/" + team[1].innings[0].wkts + " in " + ((((team[1].innings[0].ballsFaced / 6)%1) == 0) ? (team[1].innings[0].ballsFaced / 6) : Math.floor(team[1].innings[0].ballsFaced / 6) + "." + (team[1].innings[0].ballsFaced % 6)) + " overs </div></td></tr>";
+      strHTML += "</table>";
+      $("#info").html(strHTML);
+      console.log(data);
+    }
 
     //Gaussian eq to get points due to various node size
     function calculatePoint(d, point) {
@@ -182,7 +203,7 @@ function drawGraph(json) {
 
         offsetX = (diffX * linearScaleForCircleRadius(d.value)) / pathLength;
         offsetY = (diffY * linearScaleForCircleRadius(d.value)) / pathLength;
-        
+
         return [d.target.x - offsetX, d.target.y - offsetY]
     }
 
@@ -218,9 +239,9 @@ function processData(data) {
         "nodes": [],
         "links": []
     };
-    
+
     data.forEach(function(ele) {
-        
+
         if(!ele.venue)
             return;
         //if patient not found add new node
@@ -258,19 +279,40 @@ function processData(data) {
                 target: target.index,
                 type: "arrow"
             })
-    });        
+    });
     return graph;
 }
 
+function appplyFilters(){
+  var teams = [];
+  var years = []
+
+  $(".team-logo:not(.inactive)").each(function(el){
+    teams.push(this.id);
+  });
+
+  $(".year-sel:not(.inactive)").each(function(el){
+     years.push(this.id);
+   });
+  console.log(teams,years);
+  var filterData = glb_data.filter(function(el){
+    return((el.year && years.indexOf(el.year) !==-1) && ((el.team1.team.abbreviation && teams.indexOf(el.team1.team.abbreviation) !== -1)||(el.team2.team.abbreviation && teams.indexOf(el.team2.team.abbreviation) !== -1)))
+  });
+  console.log(filterData)
+  var graph = processData(filterData);
+  drawGraph(graph);
+}
 
 $(document).ready(function() {
 d3.json("data/matches.json", function(data) {
-    
-    var graph = processData(data, "u");
-    console.log(graph);
-    drawGraph(graph);
+   glb_data = data;
+   appplyFilters();
 });
 
+$(".team-logo").tipsy();
 
-    
+$(".team-logo,.year-sel").click(function(ev){
+  $(this).toggleClass("inactive");
+})
+
 });

@@ -7,17 +7,156 @@
 <style type="text/css">
 .link { stroke: #666666; }
 .nodetext { pointer-events: none; font: 10px sans-serif;}
+.small-font{
+  font-size: 12px;
+  text-shadow: none;
+}
+.tool-tip-custom{
+  font-size: 15px;
+  text-shadow: none;
+}
+
+.year-sel{
+  line-height: 25px;
+  vertical-align: middle;
+  border: 1px solid #666666;
+  font-size: 12px;
+    margin-left: 10px;
+    padding:1px 4px;
+    cursor: pointer;
+}
+
+.team-logo{
+  background: url(images/tlogo-sprite.png);
+  display: inline-block;
+  width: 30px;
+  height: 16px;
+  background-repeat: no-repeat;
+  margin-left: 10px;
+  border:1px solid #666666;
+  line-height: 25px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.MI{
+background-position: 0px 0px;
+}
+
+.CSK{
+  background-position: -30px 0px;
+}
+
+.KXIP{
+  background-position: -60px 0px;
+}
+
+.DD{
+  background-position: -0px -16px;
+}
+.GL{
+  background-position: -30px -16px;
+}
+
+.DC{
+  background-position: -60px -16px;
+}
+
+.KKR{
+  background-position: 0px -32px;
+}
+
+.KTK{
+  background-position: -30px -32px;
+}
+
+.PWI{
+  background-position: -60px -32px;
+}
+
+.RCB{
+  background-position: 0px -48px;
+}
+
+.RPS{
+  background-position: -30px -48px;
+}
+
+.RR{
+  background-position: -60px -48px;
+}
+
+.SRH{
+  background-position: 0px -64px;
+}
+
+.filters{
+  height:25px;
+}
+
+.y-2008{
+    background-color: #c3cb71;
+}
+.y-2009{
+    background-color: #559e83;
+}
+.y-2010{
+    background-color: #1b85b8;
+}
+.y-2011{
+    background-color: #9669FE;
+}
+.y-2012{
+    background-color: #FF68DD;
+}
+.y-2013{
+    background-color: #03EBA6;
+}
+.y-2014{
+    background-color: #B6BA18;
+}
+.y-2015{
+    background-color: #B6BA18;
+}
+.y-2016{
+    background-color: #FFB347;
+}
+.inactive{
+  opacity: 0.2;
+}
 </style>
 </head>
 <body>
 
-<div>
+<div class="filters">
 <!--<input type="button" value="zoom down" onclick="zoomDown(false)">-->
 <input type="button" value="zoom reset" onclick="zoomDown(true)">
-&nbsp;<input type="text" id="rangeDateTimeStart" placeholder="Start DateTime">
-&nbsp;<input type="text" id="rangeDateTimeEnd" placeholder="End DateTime">
+<span class="team-logo MI" id="MI" title="Mumbai Indians"></span>
+<span class="team-logo CSK" id="CSK" title="Chennai Super Kings"></span>
+<span class="team-logo SRH" id="SRH" title="Sunrires Hyderabad "></span>
+<span class="team-logo KKR" id="KKR" title="Kolkata Knight Riders"></span>
+<span class="team-logo KXIP" id="KXIP" title="Kings XI Punjab"></span>
+<span class="team-logo DC" id="DC" title="Deccan Chargers"></span>
+<span class="team-logo DD" id="DD" title="Delhi DareDevils"></span>
+<span class="team-logo RR" id="RR" title="Rajasthan Royals"></span>
+<span class="team-logo RPS" id="RPS" title="Rising Pune Stars"></span>
+<span class="team-logo PWI" id="PWI" title="Pune Warrior Indians"></span>
+<span class="team-logo RCB" id="RCB" title="Royal Challengers Bangalore"></span>
+<span class="team-logo KTK" id="KTK" title="Kerala Tuskers"></span>
+<span class="team-logo GL" id="GL" title="Gujarat Lions"></span>
+<span class="year-sel y-2008" id="2008">2008</span>
+<span class="year-sel y-2009" id="2009">2009</span>
+<span class="year-sel y-2010" id="2010">2010</span>
+<span class="year-sel y-2011" id="2010">2011</span>
+<span class="year-sel y-2012" id="2012">2012</span>
+<span class="year-sel y-2013" id="2013">2013</span>
+<span class="year-sel y-2014" id="2014">2014</span>
+<span class="year-sel y-2015" id="2015">2015</span>
+<span class="year-sel y-2016" id="2016">2016</span>
+<input type="button" value="apply Filters" onclick="appplyFilters()">
 </div>
 <div id="chart"></div>
+<div id="info"></div>
 </body>
 <script type="text/javascript" src="scripts/vendor/jquery/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="scripts/vendor/tipsy/tipsy.js"></script>
