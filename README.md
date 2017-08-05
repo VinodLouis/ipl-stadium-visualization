@@ -11,4 +11,4 @@ A network graph visualization of all IPL matches from 2008 to 2016:
 Technology Used : HTML,CSS,D3.js,Tipsy
 
 
-For a live demo [http://www.vinodlouis.in/ipl-2008to2016-stats/](http://www.vinodlouis.in/ipl-2008to2016-stats/)
+For a live demo [http://www.vinodlouis.com/demos/ipl-2008to2016-stats/](http://www.vinodlouis.com/demos/ipl-2008to2016-stats/) - might take a bit time to load because of huge dataset
